@@ -18,10 +18,10 @@ jobs:
                   go-version: 'stable'
             
             - name: Build Linux
-              run: go build -o zenless_stats main.go 
-            
+              run: go build -o zenless_stats .
+
             - name: Build Windows
-              run: GOOS=windows GOARCH=amd64 go build -o zenless_stats.exe main.go 
+              run: GOOS=windows GOARCH=amd64 go build -o zenless_stats.exe .
 
             - name: Export Windows Artifact
               uses: actions/upload-artifact@v7
