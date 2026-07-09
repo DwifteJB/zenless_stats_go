@@ -1,5 +1,7 @@
 # Zenless Discord Widget!!! (stats!!!)
 
+<img src="https://raw.githubusercontent.com/DwifteJB/zenless_stats_go/refs/heads/main/.github/ss.png" />
+
 WARNING!! this uses a new discord preview feature, i havent seen anyone get banned but this is "unofficial" at the moment of writing, so just beware. also your hoyolab cookies could be compromised by any  viruses, but they will probably only look at your browser anyway!
 
 ## how to use!
