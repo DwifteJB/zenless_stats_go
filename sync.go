@@ -134,8 +134,6 @@ func buildPayload(cfg Config, idx indexData, note noteData, led ledgerData, card
 			nickname = c.Nickname
 		}
 		level = c.Level
-
-		println("level:", level)
 	}
 	poly := polychromes(led)
 
@@ -144,7 +142,7 @@ func buildPayload(cfg Config, idx indexData, note noteData, led ledgerData, card
 		{"type": 1, "name": "uid", "value": "UID: " + cfg.ZenlessUID},
 		{"type": 1, "name": "polychromes", "value": poly},
 		{"type": 1, "name": "IL_str", "value": "Interknot Level"},
-		{"type": 2, "name": "IL", "value": strconv.Itoa(level)},
+		{"type": 1, "name": "IL", "value": strconv.Itoa(level)},
 		{"type": 1, "name": "ach_str", "value": "Achievements"},
 		{"type": 1, "name": "ach", "value": idx.Stats.AchievementCount},
 		{"type": 1, "name": "SBT_str", "value": "Simulated Battle Trial"},
