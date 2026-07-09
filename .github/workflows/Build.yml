@@ -1,0 +1,38 @@
+name: Build Zenless Stats
+
+on:
+    push:
+        branches: [ main ]
+    pull_request:
+        branches: [ main ]
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-go@v5
+              with:
+                  go-version: 'stable'
+            
+            - name: Build Linux
+              run: go build main.go -o zenless_stats
+            
+            - name: Build Windows
+              run: GOOS=windows GOARCH=amd64 go build main.go -o zenless_stats.exe
+
+            - name: Export Windows Artifact
+              uses: actions/upload-artifact@v7
+              with:
+                name: windows
+                path: zenless_stats.exe
+
+            - name: Export Linux Artifact
+              uses: actions/upload-artifact@v7
+              with:
+                name: linux
+                path: zenless_stats
+
+                

@@ -1,0 +1,4 @@
+config.json
+.env
+zenless_stats
+json/
