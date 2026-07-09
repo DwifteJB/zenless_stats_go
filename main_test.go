@@ -69,6 +69,7 @@ func TestBuildPayload(t *testing.T) {
 	idx.Stats.AchievementCount = 42
 	idx.Stats.ClimbingTowerLayer = 7
 	idx.Stats.ActiveDays = 100
+	idx.AvatarList = append(idx.AvatarList, avatarEntry{Name: "Ellen", Level: 60, Rank: 2, RoleSquareURL: "https://img/agent.png"})
 
 	var note noteData
 	note.Energy.Progress.Current = 120
@@ -83,8 +84,8 @@ func TestBuildPayload(t *testing.T) {
 		t.Errorf("expected username Proxy, got %v", payload["username"])
 	}
 	dyn := payload["data"].(map[string]any)["dynamic"].([]map[string]any)
-	if len(dyn) != 16 {
-		t.Fatalf("expected 16 fields, got %d", len(dyn))
+	if len(dyn) != 19 {
+		t.Fatalf("expected 19 fields, got %d", len(dyn))
 	}
 	find := func(name string) any {
 		for _, f := range dyn {
@@ -97,7 +98,7 @@ func TestBuildPayload(t *testing.T) {
 	if find("ach") != 42 {
 		t.Errorf("expected ach 42, got %v", find("ach"))
 	}
-	if find("IL") != 55 {
+	if find("IL") != "55" {
 		t.Errorf("expected IL 55, got %v", find("IL"))
 	}
 	if find("ENER") != 120 {
@@ -108,6 +109,15 @@ func TestBuildPayload(t *testing.T) {
 	}
 	if find("mini") != "Proxy: IL 55" {
 		t.Errorf("expected mini, got %v", find("mini"))
+	}
+	if find("char") != "Ellen main" {
+		t.Errorf("expected 'Ellen main', got %v", find("char"))
+	}
+	if find("char_2") != "LVL 60, S2" {
+		t.Errorf("expected 'LVL 60, S2', got %v", find("char_2"))
+	}
+	if av, ok := find("avatar").(map[string]any); !ok || av["url"] != "https://img/agent.png" {
+		t.Errorf("expected avatar url object, got %v", find("avatar"))
 	}
 }
 
@@ -130,6 +140,42 @@ func TestZenlessCard(t *testing.T) {
 	}
 	if _, ok := zenlessCard(cfg, cardData{}); ok {
 		t.Error("expected no card for empty list")
+	}
+}
+
+func TestPickCharacter(t *testing.T) {
+	idx := indexData{AvatarList: []avatarEntry{
+		{ID: 1561, Name: "Velina", RoleSquareURL: "velina.png"},
+		{ID: 1491, Name: "Sunna", IsChosen: true, RoleSquareURL: "sunna.png"},
+	}}
+	pick := func(cfg Config) string {
+		c, _ := pickCharacter(cfg, idx)
+		return c.RoleSquareURL
+	}
+
+	cfg := testConfig()
+	cfg.Character = "sunna"
+	if got := pick(cfg); got != "sunna.png" {
+		t.Errorf("by name: expected sunna.png, got %s", got)
+	}
+
+	cfg.Character = "1561"
+	if got := pick(cfg); got != "velina.png" {
+		t.Errorf("by id: expected velina.png, got %s", got)
+	}
+
+	cfg.Character = ""
+	if got := pick(cfg); got != "sunna.png" {
+		t.Errorf("default (is_chosen): expected sunna.png, got %s", got)
+	}
+
+	cfg.Character = "Nobody"
+	if got := pick(cfg); got != "sunna.png" {
+		t.Errorf("unknown falls back to chosen: expected sunna.png, got %s", got)
+	}
+
+	if _, ok := pickCharacter(testConfig(), indexData{}); ok {
+		t.Error("empty roster: expected no character")
 	}
 }
 

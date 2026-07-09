@@ -18,6 +18,7 @@ type Config struct {
 	DiscordBotToken string `json:"discord_bot_token"`
 	HoyolabCookie   string `json:"hoyolab_cookie"`
 	Region          string `json:"region"`
+	Character       string `json:"character"`
 }
 
 var regions = []struct {
@@ -87,6 +88,21 @@ func promptConfig() (Config, error) {
 	cfg.DiscordClientID = ask("Widget bot ID")
 	cfg.HoyolabUID = ask("Hoyolab ID")
 	cfg.HoyolabCookie = ask("Hoyolab cookie")
+
+	if chars, err := fetchCharacters(cfg); err != nil {
+		fmt.Printf("could not load character list (%v); featured character left on auto\n", err)
+	} else if len(chars) > 0 {
+		fmt.Println("Select featured character:")
+		fmt.Println("  0) auto (your in-game featured agent)")
+		for i, a := range chars {
+			fmt.Printf("  %d) %s (%s, lvl %d)\n", i+1, a.Name, a.Rarity, a.Level)
+		}
+		n := 0
+		fmt.Sscanf(ask("Character number"), "%d", &n)
+		if n >= 1 && n <= len(chars) {
+			cfg.Character = chars[n-1].Name
+		}
+	}
 
 	if err := saveConfig(cfg); err != nil {
 		return cfg, err

@@ -27,8 +27,10 @@ const surfaces = {
 	widget_top: {
 		layout: "widget_top_hero",
 		components: {
-			hero_image: {fields: {image: {presentation_type: "image", value_type: "custom_string", value: "change this to an image"}}},
-			title: {fields: {text: dataField("nickname")}}
+			hero_image: {fields: {image: {presentation_type: "image", value_type: "data", value: "avatar"}}},
+			title: {fields: {text: dataField("nickname")}},
+			subtitle_1: {fields: {text: dataField("char")}},
+			subtitle_2: {fields: {text: dataField("char_2")}}
 		}
 	},
 	widget_bottom: {

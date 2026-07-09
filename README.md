@@ -11,6 +11,10 @@ WARNING!! this uses a new discord preview feature, i havent seen anyone get bann
 * download or compile the app. on first run it will prompt for everything it needs: your zenless UID, region (a numbered selector), discord user id, widget bot token, widget bot id, hoyolab id & hoyolab cookie. it saves them to `config.json` next to the binary, so you only enter them once.
 * thats it! run it with no arguments to update once, run `zenless_stats cron` to run as a service that updates every hour, or `zenless_stats cron "*/5 * * * *"` to pick your own schedule (standard 5 field cron).
 
+## picking the character portrait
+
+the hero image is one of your owned agents portraits, pushed dynamically. run `zenless_stats characters` to print your roster (name, rarity, level, id, portrait url), then set `"character"` in `config.json` to a name or id (e.g. `"Ellen"` or `"1191"`) to feature that agent. leave it blank to use whichever agent you have featured in game, falling back to the first in the list.
+
 every run writes what it fetched, the exact payload it sent, and the discord response code to `json/results.json`. if the widget isnt updating, check that file: `discord_status: 204` means discord accepted the update, so the problem is on the widget/display side rather than your credentials.
 
 ## widget not updating? bind the fields
@@ -19,6 +23,7 @@ by default `create-widget.js` builds the widget with static placeholder text (`v
 
 | widget field | value name | label name |
 | --- | --- | --- |
+| hero image | `avatar` (type 3 image, your first agent portrait from hoyolab) | - |
 | title | `nickname` | - |
 | stat 1 | `IL` | `IL_str` (Interknot Level) |
 | stat 2 | `ach` | `ach_str` (Achievements) |

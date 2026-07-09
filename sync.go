@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -21,12 +22,24 @@ type apiResp struct {
 	Data    json.RawMessage `json:"data"`
 }
 
+type avatarEntry struct {
+	ID            int    `json:"id"`
+	Level         int    `json:"level"`
+	Name          string `json:"name_mi18n"`
+	FullName      string `json:"full_name_mi18n"`
+	Rarity        string `json:"rarity"`
+	Rank          int    `json:"rank"`
+	IsChosen      bool   `json:"is_chosen"`
+	RoleSquareURL string `json:"role_square_url"`
+}
+
 type indexData struct {
 	Stats struct {
 		AchievementCount   int `json:"achievement_count"`
 		ClimbingTowerLayer int `json:"climbing_tower_layer"`
 		ActiveDays         int `json:"active_days"`
 	} `json:"stats"`
+	AvatarList []avatarEntry `json:"avatar_list"`
 }
 
 type noteData struct {
@@ -126,6 +139,25 @@ func zenlessCard(cfg Config, card cardData) (cardEntry, bool) {
 	return cardEntry{}, false
 }
 
+func pickCharacter(cfg Config, idx indexData) (avatarEntry, bool) {
+	if len(idx.AvatarList) == 0 {
+		return avatarEntry{}, false
+	}
+	if cfg.Character != "" {
+		for _, a := range idx.AvatarList {
+			if strings.EqualFold(a.Name, cfg.Character) || strings.EqualFold(a.FullName, cfg.Character) || strconv.Itoa(a.ID) == cfg.Character {
+				return a, true
+			}
+		}
+	}
+	for _, a := range idx.AvatarList {
+		if a.IsChosen {
+			return a, true
+		}
+	}
+	return idx.AvatarList[0], true
+}
+
 func buildPayload(cfg Config, idx indexData, note noteData, led ledgerData, card cardData) map[string]any {
 	nickname := "Unknown Proxy"
 	level := 0
@@ -137,7 +169,14 @@ func buildPayload(cfg Config, idx indexData, note noteData, led ledgerData, card
 	}
 	poly := polychromes(led)
 
+	char, _ := pickCharacter(cfg, idx)
+	charName := char.Name + " main"
+	charStats := fmt.Sprintf("LVL %d, S%d", char.Level, char.Rank)
+
 	dynamic := []map[string]any{
+		{"type": 3, "name": "avatar", "value": map[string]any{"url": char.RoleSquareURL}},
+		{"type": 1, "name": "char", "value": charName},
+		{"type": 1, "name": "char_2", "value": charStats},
 		{"type": 1, "name": "nickname", "value": nickname},
 		{"type": 1, "name": "uid", "value": "UID: " + cfg.ZenlessUID},
 		{"type": 1, "name": "polychromes", "value": poly},
@@ -195,6 +234,33 @@ func writeResults(result map[string]any) error {
 		return err
 	}
 	return os.WriteFile("json/results.json", data, 0644)
+}
+
+func fetchCharacters(cfg Config) ([]avatarEntry, error) {
+	client := &http.Client{Timeout: 30 * time.Second}
+	indexURL, _, _, _ := statURLs(cfg)
+	var idx indexData
+	if err := getHoyo(client, indexURL, cfg, &idx); err != nil {
+		return nil, err
+	}
+	return idx.AvatarList, nil
+}
+
+func listCharacters(cfg Config) error {
+	chars, err := fetchCharacters(cfg)
+	if err != nil {
+		return fmt.Errorf("index: %w", err)
+	}
+	if len(chars) == 0 {
+		fmt.Println("no characters found")
+		return nil
+	}
+	fmt.Printf("%-20s %-6s %-5s %-6s %s\n", "NAME", "RARITY", "LEVEL", "ID", "PORTRAIT")
+	for _, a := range chars {
+		fmt.Printf("%-20s %-6s %-5d %-6d %s\n", a.Name, a.Rarity, a.Level, a.ID, a.RoleSquareURL)
+	}
+	fmt.Println("\nput one of the NAME or ID values into config.json as \"character\" to feature it.")
+	return nil
 }
 
 func syncStats(cfg Config) error {

@@ -15,6 +15,13 @@ func main() {
 		log.Fatalf("config: %v", err)
 	}
 
+	if len(os.Args) > 1 && os.Args[1] == "characters" {
+		if err := listCharacters(cfg); err != nil {
+			log.Fatalf("characters: %v", err)
+		}
+		return
+	}
+
 	if len(os.Args) < 2 || os.Args[1] != "cron" {
 		if err := syncStats(cfg); err != nil {
 			log.Fatalf("sync: %v", err)
